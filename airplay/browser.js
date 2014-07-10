@@ -8,7 +8,9 @@
 
 var util = require( 'util' );
 var events = require( 'events' );
-var mdns = require( 'mdns' );
+//var mdns = require( 'mdns' );
+
+var Mdns = require( 'mdns-js' );
 
 var Device = require( './device' ).Device;
 
@@ -32,8 +34,14 @@ Browser.prototype.init = function ( options ) {
 
     this.devices = {};
 
-    this.browser = mdns.createBrowser( mdns.tcp( 'airplay' ), options );
-    this.browser.on( 'serviceUp', function( info ) {
+    var mdns = new Mdns("airplay");
+    mdns.on('ready', function () {
+            mdns.discover()
+    });
+    //this.mdns= mdns.createBrowser( mdns.tcp( 'airplay' ), options );
+   mdns.on( 'update', function() {
+        info = mdns.ips('_airplay._tcp')
+        /*
         if ( !self.isValid( info ) ) {
             return;
         }
@@ -42,7 +50,7 @@ Browser.prototype.init = function ( options ) {
         if ( device ) {
             return;
         }
-
+        */
         device = new Device( nextDeviceId++, info );
         device.on( 'ready', function( d ) {
             self.emit( 'deviceOn', d );
@@ -54,6 +62,7 @@ Browser.prototype.init = function ( options ) {
 
         self.devices[ device.id ] = device;
     });
+    /*
     this.browser.on( 'serviceDown', function( info ) {
         if ( !self.isValid( info ) ) {
             return;
@@ -63,11 +72,11 @@ Browser.prototype.init = function ( options ) {
         if ( device ) {
             device.close();
         }
-    });
+    });*/
 };
 
 Browser.prototype.start = function () {
-    this.browser.start();
+    //this.browser.start();
     this.emit( 'start' );
     return this;
 };
