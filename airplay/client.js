@@ -10,7 +10,7 @@ var buffer = require( 'buffer' );
 var events = require( 'events' );
 var net = require( 'net' );
 var util = require( 'util' );
-var plist = require( 'plist' );
+var plist = require( 'plist-with-patches' );
 
 var CLIENT_USERAGENT = 'MediaControl/1.0';
 var CLIENT_PING_DELAY = 30; // 心跳间隔(s)
