@@ -9,7 +9,7 @@
   "contributors": [],
   "dependencies": {
     "mdns-js": "https://github.com/guerrerocarlos/node-mdns-js/tarball/master",
-    "plist": "https://github.com/agrieve/node-plist/tarball/master"
+    "plist-with-patches": "https://github.com/agrieve/node-plist/tarball/master"
   },
   "keywords": [
     "apple",
