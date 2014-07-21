@@ -1,6 +1,6 @@
 {
-  "name": "airplay2",
-  "description": "Apple AirPlay client library for AppleTV",
+  "name": "airplay-js",
+  "description": "JS Native Apple AirPlay client library for AppleTV",
   "version": "0.2.0",
   "author": {
     "name": "zfkun",
@@ -8,8 +8,8 @@
   },
   "contributors": [],
   "dependencies": {
-    "mdns-js": "https://github.com/guerrerocarlos/node-mdns-js/tarball/master",
-    "plist-with-patches": "https://github.com/agrieve/node-plist/tarball/master"
+    "mdns-js2": "0.0.4",
+    "plist-with-patches": "0.5.1"
   },
   "keywords": [
     "apple",
@@ -22,7 +22,7 @@
   "main": "airplay.js",
   "repository": {
     "type": "git",
-    "url": "git://github.com/zfkun/node-airplay.git"
+    "url": "git://github.com/guerrerocarlos/node-airplay2.git"
   },
   "bugs": {
     "url": "https://github.com/zfkun/node-airplay/issues"
