@@ -61,6 +61,29 @@ Browser.prototype.init = function ( options ) {
         });
 
         self.devices[ device.id ] = device;
+
+        info = mdns.ips('_airplay')
+        /*
+        if ( !self.isValid( info ) ) {
+            return;
+        }
+
+        var device = self.getDevice( info );
+        if ( device ) {
+            return;
+        }
+        */
+        device = new Device( nextDeviceId++, info );
+        device.on( 'ready', function( d ) {
+            self.emit( 'deviceOn', d );
+        });
+        device.on( 'close', function( d ) {
+            delete self.devices[ d.id ];
+            self.emit( 'deviceOff', d );
+        });
+
+        self.devices[ device.id ] = device;
+
     });
     /*
     this.browser.on( 'serviceDown', function( info ) {
