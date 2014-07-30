@@ -1,10 +1,10 @@
 {
-  "name": "airplay-js",
-  "description": "JS Native Apple AirPlay client library for AppleTV",
+  "name": "airplay-xbmc",
+  "description": "JS Native AirPlay client library for XBMC",
   "version": "0.2.1",
   "author": {
-    "name": "zfkun",
-    "email": "zfkun@msn.com"
+    "name": "Carlos Guerrero",
+    "email": "guerrerocarlos@gmail.com"
   },
   "contributors": [],
   "dependencies": {
@@ -22,17 +22,12 @@
   "main": "airplay.js",
   "repository": {
     "type": "git",
-    "url": "git://github.com/guerrerocarlos/node-airplay2.git"
+    "url": "git://github.com/guerrerocarlos/node-airplay-xbmc.git"
   },
   "bugs": {
-    "url": "https://github.com/zfkun/node-airplay/issues"
+    "url": "https://github.com/guerrerocarlos/node-airplay-xbmc/issues"
   },
-  "homepage": "https://github.com/zfkun/node-airplay",
-  "_npmVersion": "1.4.3",
-  "_npmUser": {
-    "name": "zfkun",
-    "email": "zfkun@msn.com"
-  },
+  "homepage": "https://github.com/guerrerocarlos/node-airplay-xbmc",
   "maintainers": [
     {
       "name": "Carlos Guerrero",

@@ -10,6 +10,7 @@ var buffer = require( 'buffer' );
 var events = require( 'events' );
 var net = require( 'net' );
 var util = require( 'util' );
+var http = require( 'http' );
 var plist = require( 'plist-with-patches' );
 
 var CLIENT_USERAGENT = 'MediaControl/1.0';
@@ -24,16 +25,22 @@ var Client = function ( options, callback ) {
     // { port, host, localAddress, path, allowHalfOpen }
     this.options = options;
     this.responseQueue = [];
+    this.host = options.host
+    this.port = options.port
 
-    this.socket = net.createConnection( options, function() {
+    //this.socket = net.createConnection( options, function() {
         self.responseQueue.push( callback );
         self.ping();
-    });
+    //});
+    //self.ping()
+    //callback()
 
-    this.socket.on( 'data', function( data ) {
-        var res = self.parseResponse( data.toString() );
+    this.on( 'received', function( data ) {
+        console.log(data)
+        var res = self.parseResponse(data.res, data.body);
         // util.puts( util.inspect( res ) );
 
+        console.log(">> CALLING NEXT FUNCTION")
         var fn = self.responseQueue.shift();
         if ( fn ) {
             fn( res );
@@ -41,14 +48,14 @@ var Client = function ( options, callback ) {
     });
 
     // TODO
-    this.socket.on( 'error', function ( err ) {
+    //this.socket.on( 'error', function ( err ) {
         // FIXME: 这里会时不时的抛出异常: 'Uncaught, unspecified "error" event.'
-        try {
-            self.emit( 'error', { type: 'socket', res: err } );
-        } catch( e ) {
-            console.info( e.message );
-        }
-    });
+    //    try {
+    //        self.emit( 'error', { type: 'socket', res: err } );
+    //    } catch( e ) {
+    //        console.info( e.message );
+    //    }
+    //});
 };
 
 util.inherits( Client, events.EventEmitter );
@@ -58,6 +65,7 @@ exports.Client = Client;
 // just for keep-alive
 // bug fix for '60s timeout'
 Client.prototype.ping = function ( force ) {
+    var self = this
     if ( !this.pingTimer || force === true ) {
         clearTimeout( this.pingTimer );
     }
@@ -66,6 +74,31 @@ Client.prototype.ping = function ( force ) {
         this.pingHandler = this.ping.bind( this );
     }
 
+    var header = {'User-Agent':CLIENT_USERAGENT,
+              'Content-Length':0}
+
+    console.log('making ping:',this.host,this.port)
+    http.request({host:this.host,port:this.port,path:'/playback-info'},
+        function(res){
+          var str = ''
+          var ans = {}
+          console.log(res.statusCode)
+          //self.emit('received',res)
+          ans.res = res
+          res.on('data', function(dat){
+            str+= dat
+          })
+          res.on('end', function(){
+            console.log(str)
+            ans.body = str
+            self.emit('received',ans)
+          }) 
+        }
+    ).end();
+
+
+    console.log('after ping')
+    /*
     this.socket.write(
         [
             'GET /playback-info HTTP/1.1',
@@ -74,7 +107,7 @@ Client.prototype.ping = function ( force ) {
             '\n'
         ].join( '\n' ) + '\n'
     );
-
+    */
     this.emit( 'ping', !!force );
 
     // next
@@ -91,59 +124,38 @@ Client.prototype.close = function() {
     return this;
 };
 
-Client.prototype.parseResponse = function( res ) {
+Client.prototype.parseResponse = function( res ,body ) {
     // Look for HTTP response:
     // HTTP/1.1 200 OK
     // Some-Header: value
     // Content-Length: 427
     // \n
     // body (427 bytes)
+    console.log('PARSE RESPONSE')
 
-    var header = res;
-    var body = '';
-    var splitPoint = res.indexOf( '\r\n\r\n' );
-    if ( splitPoint != -1 ) {
-        header = res.substr(0, splitPoint);
-        body = res.substr(splitPoint + 4);
-    }
-
-    // Normalize header \r\n -> \n
-    header = header.replace(/\r\n/g, '\n');
-
-    // Peel off status
-    var status = header.substr( 0, header.indexOf( '\n' ) );
-    var statusMatch = status.match( /HTTP\/1.1 ([0-9]+) (.+)/ );
-    header = header.substr( status.length + 1 );
-
-    // Parse headers
-    var allHeaders = {};
-    var headerLines = header.split( '\n' );
-    for ( var n = 0; n < headerLines.length; n++ ) {
-        var headerLine = headerLines[n];
-        var key = headerLine.substr( 0, headerLine.indexOf( ':' ) );
-        var value = headerLine.substr( key.length + 2 );
-        allHeaders[key] = value;
-    }
 
     // Trim body?
     return {
-        statusCode: parseInt( statusMatch[1], 10 ),
-        statusReason: statusMatch[2],
-        headers: allHeaders,
+        statusCode: res.statusCode,
+        headers: res.headers,
         body: body
-    };
+       }
 
 };
 
 Client.prototype.request = function( req, body, callback ) {
-    if ( !this.socket ) {
-        util.puts('client not connected');
-        return;
-    }
+    //if ( !this.socket ) {
+    //    util.puts('client not connected');
+    //    return;
+    //}
+    var self = this
 
     req.headers = req.headers || {};
     req.headers['User-Agent'] = CLIENT_USERAGENT;
+    req.headers['Content-Type'] = "text/parameters"
     req.headers['Content-Length'] = body ? buffer.Buffer.byteLength( body ) : 0;
+    req.host = this.host
+    req.port = this.port
 
     // GET时不能启用Keep-Alive,会造成阻塞
     if ( req.method === 'POST') {
@@ -164,7 +176,25 @@ Client.prototype.request = function( req, body, callback ) {
 
     this.responseQueue.push( callback );
 
-    this.socket.write( text );
+    console.log('sending request for:',req,body)
+
+    http.request(req,function(res){
+          var str = ''
+          var ans = {}
+          console.log(res.statusCode)
+          ans.res = res
+          res.on('data', function(dat){
+            str+= dat
+          })
+          res.on('end', function(){
+            console.log(str)
+            ans.body = str
+            self.emit('received',ans)
+          })
+        }
+    ).end();
+
+    //this.socket.write( text );
 };
 
 Client.prototype.get = function( path, callback ) {
@@ -178,7 +208,8 @@ Client.prototype.post = function( path, body, callback ) {
 
 
 Client.prototype.serverInfo = function ( callback ) {
-    this.get( '/server-info', function ( res ) {
+    console.log(">>>>>> SERVER INFO FUNCTION!!!!")
+    this.request( { path:'/server-info'}, "",function ( res ) {
         var info = {};
         
         var obj = plist.parseStringSync( res.body );
@@ -196,6 +227,7 @@ Client.prototype.serverInfo = function ( callback ) {
         else {
             this.emit( 'error', { type: 'serverInfo', res: res } );
         }
+        console.log('INFO FROM SERVER:',info)
 
         if ( callback ) {
             callback( info );
@@ -238,14 +270,32 @@ Client.prototype.playbackInfo = function ( callback ) {
 
 // position: 0 ~ 1
 Client.prototype.play = function ( src, position, callback ) {
-    var body = [
-        'Content-Location: ' + src,
-        'Start-Position: ' + (position || 0)
-    ].join( '\n' ) + '\n';
+console.log('>>>> GOING TO PLAY YUJUUU')
+var h = {}
+h['User-Agent'] = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_9_4) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/36.0.1985.125 Safari/537.36"
+h['User-Agent'] = CLIENT_USERAGENT
+h['Content-Type'] = "text/parameters"
+h['connection'] = "keep-alive"
 
-    this.post( '/play', body, function( res ) {
-        callback && callback( res );
-    });
+var data = ""
+data+= 'Content-Location: '+src+'\n'
+data+= 'Start-Position: 0\n'
+h['Content-Length'] = Buffer.byteLength(data)
+
+var req = http.request({path:'/play', host:this.host, port:this.port, method:'POST', headers:h}, function(res){
+      console.log('STATUS: ' + res.statusCode);
+      console.log('HEADERS: ' + JSON.stringify(res.headers));
+      res.on('data', function (chunk) {
+        console.log('BODY: ' + chunk);
+      });
+      callback && callback( res );
+})
+req.on('error', function(e) {
+    console.log('problem with request: ' + e.message);
+});
+
+req.write(data)
+req.end()
 };
 Client.prototype.stop = function ( callback ) {
     this.post( '/stop', null, function( res ) {

@@ -8,7 +8,6 @@
 
 var util = require( 'util' );
 var events = require( 'events' );
-//var mdns = require( 'mdns' );
 
 var Mdns = require( 'mdns-js2' );
 
@@ -41,38 +40,33 @@ Browser.prototype.init = function ( options ) {
     //this.mdns= mdns.createBrowser( mdns.tcp( 'airplay' ), options );
    mdns.on( 'update', function() {
         info = mdns.ips('_airplay._tcp')
-        /*
-        if ( !self.isValid( info ) ) {
-            return;
-        }
+        console.log(info)
+        if(info.length>0){
+          /*
+          if ( !self.isValid( info ) ) {
+              return;
+          }
 
-        var device = self.getDevice( info );
-        if ( device ) {
-            return;
-        }
-        */
-        device = new Device( nextDeviceId++, info );
-        device.on( 'ready', function( d ) {
-            self.emit( 'deviceOn', d );
-        });
-        device.on( 'close', function( d ) {
-            delete self.devices[ d.id ];
-            self.emit( 'deviceOff', d );
-        });
+          var device = self.getDevice( info );
+          if ( device ) {
+              return;
+          }
+          */
+          device = new Device( nextDeviceId++, info );
+          device.on( 'ready', function( d ) {
+              console.log('DEVICE FOUND!!',d)
+              self.emit( 'deviceOn', d );
+          });
+          device.on( 'close', function( d ) {
+              delete self.devices[ d.id ];
+              self.emit( 'deviceOff', d );
+          });
 
-        self.devices[ device.id ] = device;
+          self.devices[ device.id ] = device;
+        }
 
         info = mdns.ips('_airplay')
-        /*
-        if ( !self.isValid( info ) ) {
-            return;
-        }
-
-        var device = self.getDevice( info );
-        if ( device ) {
-            return;
-        }
-        */
+        console.log(info)
         device = new Device( nextDeviceId++, info );
         device.on( 'ready', function( d ) {
             self.emit( 'deviceOn', d );
@@ -83,7 +77,6 @@ Browser.prototype.init = function ( options ) {
         });
 
         self.devices[ device.id ] = device;
-
     });
     /*
     this.browser.on( 'serviceDown', function( info ) {
