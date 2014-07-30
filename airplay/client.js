@@ -78,7 +78,7 @@ Client.prototype.ping = function ( force ) {
               'Content-Length':0}
 
     console.log('making ping:',this.host,this.port)
-    http.request({host:this.host,port:this.port,path:'/playback-info'},
+    var req = http.request({host:this.host,port:this.port,path:'/playback-info'},
         function(res){
           var str = ''
           var ans = {}
@@ -94,7 +94,12 @@ Client.prototype.ping = function ( force ) {
             self.emit('received',ans)
           }) 
         }
-    ).end();
+    )
+    req.on('error',function(e){
+      console.log('problem with request: ' + e.message);
+    })
+    
+    req.end();
 
 
     console.log('after ping')
