@@ -13,13 +13,14 @@ var Client = require( './client' ).Client;
 
 
 
-function Device ( id, info, callback ) {
+function Device ( id, info, name, callback ) {
     var self = this;
 
     events.EventEmitter.call( this );
 
     this.id = id;
     this.info = info;
+    this.name = name;
     // this.serverInfo = null;
     this.pingDelay = 5 * 1000; // 心跳间隔
 

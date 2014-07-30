@@ -9,7 +9,7 @@
 var util = require( 'util' );
 var events = require( 'events' );
 
-var Mdns = require( 'mdns-js2' );
+var mdns = require( 'mdns-js2' );
 
 var Device = require( './device' ).Device;
 
@@ -33,13 +33,14 @@ Browser.prototype.init = function ( options ) {
 
     this.devices = {};
 
-    var mdns = new Mdns("airplay");
-    mdns.on('ready', function () {
-            mdns.discover()
+    var mdnsBrowser = new mdns.Mdns(mdns.tcp('airplay'));
+    mdnsBrowser.on('ready', function () {
+            mdnsBrowser.discover()
     });
     //this.mdns= mdns.createBrowser( mdns.tcp( 'airplay' ), options );
-   mdns.on( 'update', function() {
-        info = mdns.ips('_airplay._tcp')
+    mdnsBrowser.on( 'update', function(data) {
+        var info = data.addresses
+        var name = data.name
         console.log(info)
         if(info.length>0){
           /*
@@ -52,7 +53,7 @@ Browser.prototype.init = function ( options ) {
               return;
           }
           */
-          device = new Device( nextDeviceId++, info );
+          device = new Device( nextDeviceId++, info , name);
           device.on( 'ready', function( d ) {
               console.log('DEVICE FOUND!!',d)
               self.emit( 'deviceOn', d );
@@ -65,18 +66,6 @@ Browser.prototype.init = function ( options ) {
           self.devices[ device.id ] = device;
         }
 
-        info = mdns.ips('_airplay')
-        console.log(info)
-        device = new Device( nextDeviceId++, info );
-        device.on( 'ready', function( d ) {
-            self.emit( 'deviceOn', d );
-        });
-        device.on( 'close', function( d ) {
-            delete self.devices[ d.id ];
-            self.emit( 'deviceOff', d );
-        });
-
-        self.devices[ device.id ] = device;
     });
     /*
     this.browser.on( 'serviceDown', function( info ) {
