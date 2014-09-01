@@ -21,41 +21,20 @@ var Client = function ( options, callback ) {
     events.EventEmitter.call( this );
 
     var self = this;
-
-    // { port, host, localAddress, path, allowHalfOpen }
     this.options = options;
     this.responseQueue = [];
     this.host = options.host
     this.port = options.port
-
-    //this.socket = net.createConnection( options, function() {
-        self.responseQueue.push( callback );
-        self.ping();
-    //});
-    //self.ping()
-    //callback()
+    self.responseQueue.push( callback );
+    self.ping();
 
     this.on( 'received', function( data ) {
-        console.log(data)
         var res = self.parseResponse(data.res, data.body);
-        // util.puts( util.inspect( res ) );
-
-        console.log(">> CALLING NEXT FUNCTION")
         var fn = self.responseQueue.shift();
         if ( fn ) {
             fn( res );
         }
     });
-
-    // TODO
-    //this.socket.on( 'error', function ( err ) {
-        // FIXME: 这里会时不时的抛出异常: 'Uncaught, unspecified "error" event.'
-    //    try {
-    //        self.emit( 'error', { type: 'socket', res: err } );
-    //    } catch( e ) {
-    //        console.info( e.message );
-    //    }
-    //});
 };
 
 util.inherits( Client, events.EventEmitter );
@@ -76,20 +55,15 @@ Client.prototype.ping = function ( force ) {
 
     var header = {'User-Agent':CLIENT_USERAGENT,
               'Content-Length':0}
-
-    console.log('making ping:',this.host,this.port)
     var req = http.request({host:this.host,port:this.port,path:'/playback-info'},
         function(res){
           var str = ''
           var ans = {}
-          console.log(res.statusCode)
-          //self.emit('received',res)
           ans.res = res
           res.on('data', function(dat){
             str+= dat
           })
           res.on('end', function(){
-            console.log(str)
             ans.body = str
             self.emit('received',ans)
           }) 
@@ -101,18 +75,6 @@ Client.prototype.ping = function ( force ) {
     
     req.end();
 
-
-    console.log('after ping')
-    /*
-    this.socket.write(
-        [
-            'GET /playback-info HTTP/1.1',
-            'User-Agent: ' + CLIENT_USERAGENT,
-            'Content-Length: 0',
-            '\n'
-        ].join( '\n' ) + '\n'
-    );
-    */
     this.emit( 'ping', !!force );
 
     // next
@@ -136,7 +98,6 @@ Client.prototype.parseResponse = function( res ,body ) {
     // Content-Length: 427
     // \n
     // body (427 bytes)
-    console.log('PARSE RESPONSE')
 
 
     // Trim body?
@@ -149,10 +110,6 @@ Client.prototype.parseResponse = function( res ,body ) {
 };
 
 Client.prototype.request = function( req, body, callback ) {
-    //if ( !this.socket ) {
-    //    util.puts('client not connected');
-    //    return;
-    //}
     var self = this
 
     req.headers = req.headers || {};
@@ -181,25 +138,19 @@ Client.prototype.request = function( req, body, callback ) {
 
     this.responseQueue.push( callback );
 
-    console.log('sending request for:',req,body)
-
     http.request(req,function(res){
           var str = ''
           var ans = {}
-          console.log(res.statusCode)
           ans.res = res
           res.on('data', function(dat){
             str+= dat
           })
           res.on('end', function(){
-            console.log(str)
             ans.body = str
             self.emit('received',ans)
           })
         }
     ).end();
-
-    //this.socket.write( text );
 };
 
 Client.prototype.get = function( path, callback ) {
@@ -213,7 +164,6 @@ Client.prototype.post = function( path, body, callback ) {
 
 
 Client.prototype.serverInfo = function ( callback ) {
-    console.log(">>>>>> SERVER INFO FUNCTION!!!!")
     this.request( { path:'/server-info'}, "",function ( res ) {
         var info = {};
         
@@ -232,7 +182,6 @@ Client.prototype.serverInfo = function ( callback ) {
         else {
             this.emit( 'error', { type: 'serverInfo', res: res } );
         }
-        console.log('INFO FROM SERVER:',info)
 
         if ( callback ) {
             callback( info );
@@ -275,7 +224,6 @@ Client.prototype.playbackInfo = function ( callback ) {
 
 // position: 0 ~ 1
 Client.prototype.play = function ( src, position, callback ) {
-console.log('>>>> GOING TO PLAY YUJUUU')
 var h = {}
 h['User-Agent'] = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_9_4) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/36.0.1985.125 Safari/537.36"
 h['User-Agent'] = CLIENT_USERAGENT
@@ -288,11 +236,6 @@ data+= 'Start-Position: 0\n'
 h['Content-Length'] = Buffer.byteLength(data)
 
 var req = http.request({path:'/play', host:this.host, port:this.port, method:'POST', headers:h}, function(res){
-      console.log('STATUS: ' + res.statusCode);
-      console.log('HEADERS: ' + JSON.stringify(res.headers));
-      res.on('data', function (chunk) {
-        console.log('BODY: ' + chunk);
-      });
       callback && callback( res );
 })
 req.on('error', function(e) {
