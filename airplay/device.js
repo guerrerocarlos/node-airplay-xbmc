@@ -21,7 +21,6 @@ function Device ( id, info, name, callback ) {
     this.id = id;
     this.info = info;
     this.name = name;
-    // this.serverInfo = null;
     this.pingDelay = 5 * 1000; // 心跳间隔
 
     this.client = new Client(

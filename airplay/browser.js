@@ -37,22 +37,11 @@ Browser.prototype.init = function ( options ) {
     mdnsBrowser.on('ready', function () {
             mdnsBrowser.discover()
     });
-    //this.mdns= mdns.createBrowser( mdns.tcp( 'airplay' ), options );
     mdnsBrowser.on( 'update', function(data) {
         var info = data.addresses
         var name = data.name
         console.log(info)
         if(info.length>0){
-          /*
-          if ( !self.isValid( info ) ) {
-              return;
-          }
-
-          var device = self.getDevice( info );
-          if ( device ) {
-              return;
-          }
-          */
           device = new Device( nextDeviceId++, info , name);
           device.on( 'ready', function( d ) {
               console.log('DEVICE FOUND!!',d)
@@ -67,21 +56,9 @@ Browser.prototype.init = function ( options ) {
         }
 
     });
-    /*
-    this.browser.on( 'serviceDown', function( info ) {
-        if ( !self.isValid( info ) ) {
-            return;
-        }
-
-        var device = self.getDevice( info );
-        if ( device ) {
-            device.close();
-        }
-    });*/
 };
 
 Browser.prototype.start = function () {
-    //this.browser.start();
     this.emit( 'start' );
     return this;
 };
