@@ -33,7 +33,7 @@ Browser.prototype.init = function ( options ) {
 
     this.devices = {};
 
-    var mdnsBrowser = new mdns.Mdns(mdns.tcp('airplay'));
+    var mdnsBrowser = new mdns.createBrowser(mdns.tcp('airplay'));
     mdnsBrowser.on('ready', function () {
             mdnsBrowser.discover()
     });
