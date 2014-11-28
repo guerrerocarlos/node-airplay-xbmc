@@ -1,14 +1,14 @@
 {
   "name": "airplay-xbmc",
   "description": "JS Native AirPlay client library for XBMC",
-  "version": "0.2.9",
+  "version": "0.2.10",
   "author": {
     "name": "Carlos Guerrero",
     "email": "guerrerocarlos@gmail.com"
   },
   "contributors": [],
   "dependencies": {
-    "mdns-js2": "*",
+    "mdns-js": "guerrerocarlos/node-mdns-js",
     "plist-with-patches": "0.5.1"
   },
   "keywords": [

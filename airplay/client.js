@@ -1,6 +1,6 @@
 /**
  * node-airplay
- * 
+ *
  * @file airplay protocol client
  * @author zfkun(zfkun@msn.com)
  * @thanks https://github.com/benvanik/node-airplay/blob/master/lib/airplay/client.js
@@ -66,13 +66,12 @@ Client.prototype.ping = function ( force ) {
           res.on('end', function(){
             ans.body = str
             self.emit('received',ans)
-          }) 
+          })
         }
     )
     req.on('error',function(e){
-      console.log('problem with request: ' + e.message);
     })
-    
+
     req.end();
 
     this.emit( 'ping', !!force );
@@ -166,7 +165,7 @@ Client.prototype.post = function( path, body, callback ) {
 Client.prototype.serverInfo = function ( callback ) {
     this.request( { path:'/server-info'}, "",function ( res ) {
         var info = {};
-        
+
         var obj = plist.parseStringSync( res.body );
         if ( obj ) {
             info = {
@@ -239,7 +238,6 @@ var req = http.request({path:'/play', host:this.host, port:this.port, method:'PO
       callback && callback( res );
 })
 req.on('error', function(e) {
-    console.log('problem with request: ' + e.message);
 });
 
 req.write(data)

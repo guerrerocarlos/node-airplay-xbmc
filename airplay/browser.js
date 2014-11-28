@@ -1,6 +1,6 @@
 /**
  * node-airplay
- * 
+ *
  * @file bojour server
  * @author zfkun(zfkun@msn.com)
  * @thanks https://github.com/benvanik/node-airplay/blob/master/lib/airplay/browser.js
@@ -9,7 +9,7 @@
 var util = require( 'util' );
 var events = require( 'events' );
 
-var mdns = require( 'mdns-js2' );
+var mdns = require( 'mdns-js' );
 
 var Device = require( './device' ).Device;
 
@@ -40,11 +40,9 @@ Browser.prototype.init = function ( options ) {
     mdnsBrowser.on( 'update', function(data) {
         var info = data.addresses
         var name = data.name
-        console.log(info)
         if(info.length>0){
           device = new Device( nextDeviceId++, info , name);
           device.on( 'ready', function( d ) {
-              console.log('DEVICE FOUND!!',d)
               self.emit( 'deviceOn', d );
           });
           device.on( 'close', function( d ) {
